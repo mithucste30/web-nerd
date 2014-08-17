@@ -18,3 +18,4 @@
 log/*
 public/uploads/*
 nbproject/*
+config/database.yml
