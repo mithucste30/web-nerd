@@ -1,7 +1,5 @@
-require 'capistrano/rails'
-
 SSHKit.config.command_map[:rake] = "bundle exec rake"
-lock '3.1'
+lock '3.2.1'
 
 set :application, 'web-nerd'
 set :scm, :git
@@ -11,8 +9,6 @@ server '104.131.220.188',
        :user => 'deploy',
        :roles => %w{web app db}
 
-set :rvm_map_bins, %w{gem rake ruby bundle}
-#set :bundle_bins, %w{bundle}
 set :rvm_roles, [:app, :web]
 set :rvm_type, :user
 set :rvm_ruby_version, 'ruby-2.1.2'
@@ -29,24 +25,23 @@ set :deploy_via, :remote_cache
 set :keep_releases, 5
 
 namespace :deploy do
-
   desc 'Restart application'
   task :restart do
     on roles(:app), in: :sequence, wait: 5 do
-      # Restarts Phusion Passenger
       execute :touch, release_path.join('tmp/restart.txt')
     end
   end
 
+  before 'assets:precompile', 'cleanup_assets'
   after :publishing, :restart
+  after :finishing, 'deploy:cleanup'
+
 
   after :restart, :clear_cache do
     on roles(:web), in: :groups, limit: 3, wait: 10 do
-      # Here we can do anything such as:
-      # within release_path do
-      #   execute :rake, 'cache:clear'
-      # end
+      within release_path do
+        execute :rake, 'tmp:cache:clear'
+      end
     end
   end
-
 end
