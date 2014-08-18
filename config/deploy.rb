@@ -1,15 +1,20 @@
 SSHKit.config.command_map[:rake] = "bundle exec rake"
 lock '3.2.1'
 require 'capistrano/rvm'
+require 'capistrano/bundler'
+require 'capistrano/rails/assets'
+require 'capistrano/rails/migrations'
+
 set :application, 'web-nerd'
 set :scm, :git
 set :repo_url, 'git@github.com:mithucste30/web-nerd.git'
 
 server '104.131.220.188',
-  :user => 'deploy',
-  :roles  => %w{web app db}
+       :user => 'deploy',
+       :roles => %w{web app db}
 
 set :rvm_map_bins, %w{gem rake ruby bundle}
+set :bundle_bins, %w{bundle}
 set :rvm_roles, [:app, :web]
 set :rvm_type, :user
 set :rvm_ruby_version, 'ruby-2.1.2'
@@ -18,12 +23,21 @@ set :rvm_path, '/home/deploy/.rvm'
 set :format, :pretty
 set :log_level, :debug
 set :pty, true
-#set :linked_files, %w{config/database.yml}
+set :linked_files, %w{config/database.yml}
 set :linked_dirs, %w{bin log tmp/pids tmp/cache tmp/sockets vendor/bundle public/system}
 
 set :deploy_via, :remote_cache
 
 set :keep_releases, 5
+
+namespace :bundler do
+  desc "run bundle install and ensure all gem requirements are met"
+  task :install do
+    execute :cd, "#{current_path}"
+    execute :bundle, "install  --without=test --no-update-sources"
+  end
+
+end
 
 namespace :deploy do
 
@@ -34,15 +48,19 @@ namespace :deploy do
     end
   end
 
-  #  after :publishing, :restart
-  #
-  #  after :restart, :clear_cache do
-  #    on roles(:web), in: :groups, limit: 3, wait: 10 do
-  #      # Here we can do anything such as:
-  #      # within release_path do
-  #      #   execute :rake, 'cache:clear'
-  #      # end
-  #    end
-  #  end
+#  task :upload_database_file do
+#    run_locally "scp config/database.yml deploy@104.131.220.188:#{shared_path}/config/database.yml"
+#  end
+
+#  after :publishing, :restart
+#
+#  after :restart, :clear_cache do
+#    on roles(:web), in: :groups, limit: 3, wait: 10 do
+#      # Here we can do anything such as:
+#      # within release_path do
+#      #   execute :rake, 'cache:clear'
+#      # end
+#    end
+#  end
 
 end
