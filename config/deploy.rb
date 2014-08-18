@@ -2,8 +2,7 @@ SSHKit.config.command_map[:rake] = "bundle exec rake"
 lock '3.2.1'
 require 'capistrano/rvm'
 require 'capistrano/bundler'
-require 'capistrano/rails/assets'
-require 'capistrano/rails/migrations'
+
 
 set :application, 'web-nerd'
 set :scm, :git
@@ -29,15 +28,6 @@ set :linked_dirs, %w{bin log tmp/pids tmp/cache tmp/sockets vendor/bundle public
 set :deploy_via, :remote_cache
 
 set :keep_releases, 5
-
-namespace :bundler do
-  desc "run bundle install and ensure all gem requirements are met"
-  task :install do
-    execute :cd, "#{current_path}"
-    execute :bundle, "install  --without=test --no-update-sources"
-  end
-
-end
 
 namespace :deploy do
 
